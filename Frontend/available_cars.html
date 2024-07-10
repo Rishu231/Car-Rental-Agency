@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Available Cars</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mt-4">Available Cars</h2>
+        <div id="cars-container" class="row mt-4"></div>
+        <a href="../Models/logout.php" class="btn btn-danger logout-btn">Logout</a>
+    </div>
+
+    <script>
+        var role = ''
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+            role = sessionStorage.getItem('role');
+            // console.log("Role-=-=-:", role);
+            // console.log("Role:", role);
+            const carsContainer = document.getElementById('cars-container');
+
+            fetch('../Models/CarController.php?action=list')
+                .then(response => response.json())
+                .then(cars => {
+                    cars.forEach(car => {
+                        let carHtml = `
+                        <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                    <h5 class="card-title">${car.model}</h5>
+                                    <p class="card-text">Vehicle Number: ${car.vehicle_number}</p>
+                                    <p class="card-text">Seating Capacity: ${car.seating_capacity}</p>
+                                    <p class="card-text">Rent Per Day: ${car.rent_per_day}</p>
+                        `;
+
+                        if (role === 'customer') {
+                            carHtml += `
+                            
+                                <form action="../Models/BookingController.php" method="POST">
+                                    <input type="hidden" name="car_id" value="${car.id}">
+                                    <div class="form-group">
+                                        <label for="start_date">Start Date:</label>
+                                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="number_of_days">Number of Days:</label>
+                                        <input type="number" class="form-control" id="number_of_days" name="number_of_days" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Rent Car</button>
+                                </form>
+                            `;
+                        }else if(role === 'agency') {
+                            carHtml += `
+                                <form action="../Frontend/add_car.html" method="POST">
+                                    <button type="submit" class="btn btn-primary">Add Car</button>
+                                </form>
+                            `;
+                        }else{
+                                // localStorage.clear();
+                                // sessionStorage.clear();
+                                // window.location.href = 'customerLogin.html';   
+                        }
+                        
+                        carHtml += `
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        carsContainer.innerHTML += carHtml;
+                    });
+                })
+                .catch(error => console.error('Error fetching cars:', error));
+            }, 200);
+        });
+    </script>
+</body>
+</html>
